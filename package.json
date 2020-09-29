@@ -1,0 +1,13 @@
+{
+  "name": "xbot",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "discord.js": "^12.3.1",
+    "matrix-js-sdk": "^8.0.1",
+    "node-telegram-bot-api": "^0.50.0"
+  }
+}
