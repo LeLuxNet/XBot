@@ -1,14 +1,18 @@
-const sdk = require("matrix-js-sdk");
+import { Platform } from "../platform";
+import sdk from "matrix-js-sdk";
+import { Message } from "../message";
+import { Channel } from "../channel";
+import { Reaction } from "../reaction";
+import { User } from "../user";
+import { Presence } from "src/presence";
 
-const Platform = require("./base");
-const Channel = require("../objects/channel");
-const Message = require("../objects/message");
-const Reaction = require("../objects/reaction");
-const Presence = require("../objects/presence");
+export class Matrix extends Platform {
+  deleteTraces = true;
+  userId: string;
+  _client: sdk.MatrixClient;
 
-class Matrix extends Platform {
-  constructor(userId, accessToken, server, handle) {
-    super("Matrix", handle);
+  constructor(userId: string, accessToken: string, server: string) {
+    super("Matrix");
 
     this.userId = userId.toLowerCase();
     this._client = sdk.createClient({
@@ -41,7 +45,8 @@ class Matrix extends Platform {
           return;
         }
 
-        this.handle.handleMessage(
+        this.emit(
+          "message",
           new Message(
             this,
             event.event_id,
@@ -57,7 +62,7 @@ class Matrix extends Platform {
         );
       } else if (event.getType() === "m.reaction") {
         const data = event.getContent()["m.relates_to"];
-        this._reactionRecieved(data.event_id, data.key);
+        this._reactionRecieved(data.event_id, data.key, new User(this, "", ""));
       }
     });
   }
@@ -73,19 +78,23 @@ class Matrix extends Platform {
     this.log("Stopped");
   }
 
-  async sendMessage(text, room) {
+  async sendMessage(text: string, room: Channel): Promise<Message> {
+    // @ts-ignore
     var event = await this._client.sendTextMessage(room._internal, text);
+    // @ts-ignore
     return new Message(this, event.event_id, event.event_id, text, room);
   }
 
-  async deleteMessage(message) {
+  async deleteMessage(message: Message) {
+    // @ts-ignore
     await this._client.redactEvent(
       message.channel._internal,
       message._internal
     );
   }
 
-  async editMessage(message, text) {
+  async editMessage(message: Message, text: string) {
+    // @ts-ignore
     await this._client.sendEvent(message.channel._internal, "m.room.message", {
       body: "*" + text,
       msgtype: "m.text",
@@ -100,7 +109,8 @@ class Matrix extends Platform {
     });
   }
 
-  async addReaction(emoji, message) {
+  async addReaction(emoji: string, message: Message): Promise<Reaction> {
+    // @ts-ignore
     var reaction = await this._client.sendEvent(
       message.channel._internal,
       "m.reaction",
@@ -112,17 +122,19 @@ class Matrix extends Platform {
         },
       }
     );
+    // @ts-ignore
     return new Reaction(this, reaction.event_id, emoji, message);
   }
 
-  async removerUserReaction(reaction, user) {
+  async removerUserReaction(reaction: Reaction, user: User) {
+    // @ts-ignore
     await this._client.redactEvent(
       reaction.message.channel._internal,
       reaction._internal
     );
   }
 
-  async setPresence(presence, status) {
+  async setPresence(presence: Presence, status: string) {
     await this._client.setPresence({
       presence: ["online", "unavailable", "unavailable", "offline"][presence],
       status_msg: status,
@@ -130,13 +142,7 @@ class Matrix extends Platform {
     this.log("Set presence");
   }
 
-  async typing(room, timeout) {
+  async typing(room: Channel, timeout: number) {
     await this._client.sendTyping(room._internal, true, timeout);
   }
-
-  hasDeleteTraces() {
-    return true;
-  }
 }
-
-module.exports = Matrix;

@@ -1,4 +1,4 @@
-const Platform = require("./base");
+const Platform = require("../platform");
 const TelegramBot = require("node-telegram-bot-api");
 const Message = require("../objects/message");
 const Channel = require("../objects/channel");
