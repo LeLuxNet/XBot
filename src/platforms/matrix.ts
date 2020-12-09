@@ -1,10 +1,11 @@
 import { Platform } from "../platform";
 import sdk from "matrix-js-sdk";
-import { Message } from "../message";
+import { FileType, Message } from "../message";
 import { Channel } from "../channel";
 import { Reaction } from "../reaction";
 import { User } from "../user";
 import { Presence } from "src/presence";
+import { createReadStream } from "fs";
 
 export class Matrix extends Platform {
   deleteTraces = true;
@@ -78,9 +79,32 @@ export class Matrix extends Platform {
     this.log("Stopped");
   }
 
-  async sendMessage(text: string, room: Channel): Promise<Message> {
+  async sendText(text: string, room: Channel): Promise<Message> {
     // @ts-ignore
-    var event = await this._client.sendTextMessage(room._internal, text);
+    const event = await this._client.sendTextMessage(room._internal, text);
+    // @ts-ignore
+    return new Message(this, event.event_id, event.event_id, text, room);
+  }
+
+  async sendFile(
+    name: string,
+    fileName: string,
+    type: FileType,
+    room: Channel
+  ): Promise<Message> {
+    const readStream = createReadStream(fileName);
+
+    // @ts-ignore
+    const url = this._client.uploadContent(readStream, {});
+
+    const content = {
+      msgtype: ["m.image", "m.audio", "m.video", "m.file"][type],
+      body: name,
+      url: url,
+    };
+
+    // @ts-ignore
+    const event = await this._client.sendMessage(room._internal, content);
     // @ts-ignore
     return new Message(this, event.event_id, event.event_id, text, room);
   }

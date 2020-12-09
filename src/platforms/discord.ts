@@ -1,6 +1,6 @@
 import DiscordJs from "discord.js";
 import { Channel } from "../channel";
-import { Message } from "../message";
+import { FileType, Message } from "../message";
 import { Platform } from "../platform";
 import { Presence } from "../presence";
 import { Reaction } from "../reaction";
@@ -68,8 +68,20 @@ export class Discord extends Platform {
     this.log("Stopped");
   }
 
-  async sendMessage(text: string, channel: Channel): Promise<Message> {
+  async sendText(text: string, channel: Channel): Promise<Message> {
     var msg = await channel._internal.send(text);
+    return new Message(this, msg, msg.id, msg.content, channel);
+  }
+
+  async sendFile(
+    name: string,
+    fileName: string,
+    type: FileType,
+    channel: Channel
+  ): Promise<Message> {
+    var msg = await channel._internal.send({
+      file: [{ attachment: fileName, name }],
+    });
     return new Message(this, msg, msg.id, msg.content, channel);
   }
 

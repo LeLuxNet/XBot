@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { Channel } from "./channel";
-import { Message } from "./message";
+import { FileType, Message } from "./message";
 import { Presence } from "./presence";
 import { Reaction } from "./reaction";
 import { User } from "./user";
@@ -23,7 +23,14 @@ export abstract class Platform extends EventEmitter {
 
   abstract async stop(): Promise<void>;
 
-  abstract async sendMessage(text: string, channel: Channel): Promise<Message>;
+  abstract async sendText(text: string, channel: Channel): Promise<Message>;
+
+  abstract async sendFile(
+    name: string,
+    fileName: string,
+    type: FileType,
+    channel: Channel
+  ): Promise<Message>;
 
   abstract async deleteMessage(message: Message): Promise<void>;
 

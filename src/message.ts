@@ -50,3 +50,10 @@ export class Message extends Internal {
     setTimeout(() => this.delete(), seconds * 1000);
   }
 }
+
+export enum FileType {
+  IMAGE = 0,
+  AUDIO = 1,
+  VIDEO = 2,
+  FILE = 3,
+}

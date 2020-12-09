@@ -1,4 +1,5 @@
 import { Internal } from "./internal";
+import { FileType } from "./message";
 import { Platform } from "./platform";
 
 export class Channel extends Internal {
@@ -12,8 +13,12 @@ export class Channel extends Internal {
     this.dm = dm;
   }
 
-  async sendMessage(text: string) {
-    return await this.platform.sendMessage(text, this);
+  async sendText(text: string) {
+    return await this.platform.sendText(text, this);
+  }
+
+  async sendFile(name: string, fileName: string, type: FileType) {
+    return await this.platform.sendFile(name, fileName, type, this);
   }
 
   async typing(timeout = 2000) {
