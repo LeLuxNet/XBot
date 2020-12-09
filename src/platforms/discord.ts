@@ -30,27 +30,30 @@ export class Discord extends Platform {
           return;
         }
 
+        const channel = new Channel(
+          this,
+          msg.channel,
+          msg.channel instanceof DiscordJs.DMChannel
+            ? msg.channel.recipient.username
+            : msg.channel.name,
+          msg.channel instanceof DiscordJs.DMChannel
+        );
+
+        const author = new User(
+          this,
+          msg.author,
+          msg.author.username,
+          msg.author.bot
+        );
+
         this.emit(
           "message",
-          new Message(
-            this,
-            msg,
-            msg.id,
-            msg.content,
-            new Channel(
-              this,
-              msg.channel,
-              msg.channel instanceof DiscordJs.DMChannel
-                ? msg.channel.recipient.username
-                : msg.channel.name,
-              msg.channel instanceof DiscordJs.DMChannel
-            )
-          )
+          new Message(this, msg, msg.id, msg.content, channel, author)
         );
       });
 
       this._client.on("messageReactionAdd", (r, u) => {
-        const user = new User(this, u, u.username || "");
+        const user = new User(this, u, u.username || "", u.bot);
         this._reactionRecieved(r.message.id, r.emoji.name, user);
       });
 
@@ -68,9 +71,14 @@ export class Discord extends Platform {
     this.log("Stopped");
   }
 
+  public get me(): Promise<User> {
+    const self = this._client!.user!;
+    return Promise.resolve(new User(this, self, self.username, self.bot));
+  }
+
   async sendText(text: string, channel: Channel): Promise<Message> {
     var msg = await channel._internal.send(text);
-    return new Message(this, msg, msg.id, msg.content, channel);
+    return new Message(this, msg, msg.id, msg.content, channel, await this.me);
   }
 
   async sendFile(
@@ -82,7 +90,7 @@ export class Discord extends Platform {
     var msg = await channel._internal.send({
       file: [{ attachment: fileName, name }],
     });
-    return new Message(this, msg, msg.id, msg.content, channel);
+    return new Message(this, msg, msg.id, msg.content, channel, await this.me);
   }
 
   async deleteMessage(message: Message) {

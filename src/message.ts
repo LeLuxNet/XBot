@@ -2,11 +2,13 @@ import { Channel } from "./channel";
 import { Internal } from "./internal";
 import { Platform } from "./platform";
 import { Reaction } from "./reaction";
+import { User } from "./user";
 
 export class Message extends Internal {
   id: string;
   content: string;
   channel: Channel;
+  author: User;
   reactions: Array<Reaction> = [];
   reactionButtons = true;
   _reactionListeners = new Map<string, Reaction>();
@@ -16,13 +18,15 @@ export class Message extends Internal {
     internal: any,
     id: string,
     content: string,
-    channel: Channel
+    channel: Channel,
+    author: User
   ) {
     super(platform, internal);
     this.id = id;
 
     this.content = content;
     this.channel = channel;
+    this.author = author;
   }
 
   async react(emoji: string) {

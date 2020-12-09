@@ -23,6 +23,8 @@ export abstract class Platform extends EventEmitter {
 
   abstract async stop(): Promise<void>;
 
+  abstract get me(): Promise<User>;
+
   abstract async sendText(text: string, channel: Channel): Promise<Message>;
 
   abstract async sendFile(

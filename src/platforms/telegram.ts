@@ -1,5 +1,6 @@
 import { fstat } from "fs";
 import { readFile } from "fs/promises";
+import { get } from "https";
 import TelegramBot, { File } from "node-telegram-bot-api";
 import { Channel } from "src/channel";
 import { FileType, Message } from "src/message";
@@ -8,7 +9,7 @@ import { Presence } from "src/presence";
 import { Reaction } from "src/reaction";
 import { User } from "src/user";
 
-class Telegram extends Platform {
+export class Telegram extends Platform {
   deleteTraces = false;
   _bot: TelegramBot;
 
@@ -24,6 +25,20 @@ class Telegram extends Platform {
       console.log(msg);
 
       const dm = msg.chat.type === "private";
+      const chat = new Channel(
+        this,
+        msg.chat.id,
+        (dm ? msg.chat.username : msg.chat.title) || "",
+        dm
+      );
+
+      const user = new User(
+        this,
+        msg.from,
+        getName(msg.from!),
+        msg.from!.is_bot
+      );
+
       this.emit(
         "message",
         new Message(
@@ -31,12 +46,8 @@ class Telegram extends Platform {
           msg.message_id,
           uniqueIdByIds(msg.message_id, msg.chat.id),
           msg.text,
-          new Channel(
-            this,
-            msg.chat.id,
-            (dm ? msg.chat.username : msg.chat.title) || "",
-            dm
-          )
+          chat,
+          user
         )
       );
     });
@@ -47,15 +58,12 @@ class Telegram extends Platform {
         query.message!.chat.id
       );
 
-      var name = query.from.first_name;
-      if (query.from.last_name !== undefined) {
-        name += " " + query.from.last_name;
-      }
+      getName(query.from);
 
       this._reactionRecieved(
         id,
         query.data!,
-        new User(this, query.from.id, name)
+        new User(this, query.from.id, getName(query.from), query.from.is_bot)
       );
     });
   }
@@ -70,6 +78,12 @@ class Telegram extends Platform {
     this.log("Stopped");
   }
 
+  get me(): Promise<User> {
+    return this._bot
+      .getMe()
+      .then((e) => new User(this, e, getName(e), e.is_bot));
+  }
+
   async sendText(text: string, chat: Channel): Promise<Message> {
     const msg = await this._bot.sendMessage(chat._internal, text);
     return new Message(
@@ -77,7 +91,8 @@ class Telegram extends Platform {
       msg.message_id,
       uniqueIdByIds(msg.message_id, chat._internal),
       msg.text!,
-      chat
+      chat,
+      await this.me
     );
   }
 
@@ -106,7 +121,8 @@ class Telegram extends Platform {
       msg.message_id,
       uniqueIdByIds(msg.message_id, chat._internal),
       msg.text!,
-      chat
+      chat,
+      await this.me
     );
   }
 
@@ -172,4 +188,9 @@ function getReactionData(message: Message) {
   };
 }
 
-module.exports = Telegram;
+function getName(user: TelegramBot.User) {
+  if (user.last_name !== undefined) {
+    return `${user.first_name} ${user.last_name}`;
+  }
+  return user.first_name;
+}

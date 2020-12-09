@@ -46,6 +46,20 @@ export class Matrix extends Platform {
           return;
         }
 
+        const channel = new Channel(
+          this,
+          room.roomId,
+          room.name,
+          room.currentState.getJoinedMemberCount() === 2
+        );
+
+        const user = new User(
+          this,
+          event.userId,
+          this._client.getUser(event.userId)!.displayName,
+          false
+        );
+
         this.emit(
           "message",
           new Message(
@@ -53,17 +67,17 @@ export class Matrix extends Platform {
             event.event_id,
             event.event_id,
             event.getContent().body,
-            new Channel(
-              this,
-              room.roomId,
-              room.name,
-              room.currentState.getJoinedMemberCount() === 2
-            )
+            channel,
+            user
           )
         );
       } else if (event.getType() === "m.reaction") {
         const data = event.getContent()["m.relates_to"];
-        this._reactionRecieved(data.event_id, data.key, new User(this, "", ""));
+        this._reactionRecieved(
+          data.event_id,
+          data.key,
+          new User(this, "", "", false)
+        );
       }
     });
   }
@@ -77,6 +91,17 @@ export class Matrix extends Platform {
   async stop() {
     await this._client.stopClient();
     this.log("Stopped");
+  }
+
+  get me(): Promise<User> {
+    const self = this._client.getUserId()!;
+    const user = new User(
+      this,
+      self,
+      this._client.getUser(self)!.displayName,
+      false
+    );
+    return Promise.resolve(user);
   }
 
   async sendText(text: string, room: Channel): Promise<Message> {
