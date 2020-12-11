@@ -19,38 +19,32 @@ export abstract class Platform extends EventEmitter {
     console.log("[" + this.name + "] " + msg);
   }
 
-  abstract async start(): Promise<void>;
+  abstract start(): Promise<void>;
 
-  abstract async stop(): Promise<void>;
+  abstract stop(): Promise<void>;
 
   abstract get me(): Promise<User>;
 
-  abstract async sendText(text: string, channel: Channel): Promise<Message>;
+  abstract sendText(text: string, channel: Channel): Promise<Message>;
 
-  abstract async sendFile(
+  abstract sendFile(
     name: string,
     fileName: string,
     type: FileType,
     channel: Channel
   ): Promise<Message>;
 
-  abstract async deleteMessage(message: Message): Promise<void>;
+  abstract deleteMessage(message: Message): Promise<void>;
 
-  abstract async editMessage(message: Message, text: string): Promise<void>;
+  abstract editMessage(message: Message, text: string): Promise<void>;
 
-  abstract async addReaction(
-    emoji: string,
-    message: Message
-  ): Promise<Reaction>;
+  abstract addReaction(emoji: string, message: Message): Promise<Reaction>;
 
-  abstract async removerUserReaction(
-    reaction: Reaction,
-    user: User
-  ): Promise<void>;
+  abstract removerUserReaction(reaction: Reaction, user: User): Promise<void>;
 
-  abstract async setPresence(presence: Presence, status: string): Promise<void>;
+  abstract setPresence(presence: Presence, status: string): Promise<void>;
 
-  abstract async typing(channel: Channel, timeout: number): Promise<void>;
+  abstract typing(channel: Channel, timeout: number): Promise<void>;
 
   async _reactionRecieved(messageId: string, emoji: string, user: User) {
     const msg = this._reactionMessages.get(messageId);

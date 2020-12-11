@@ -1,13 +1,13 @@
-import { fstat } from "fs";
-import { readFile } from "fs/promises";
-import { get } from "https";
-import TelegramBot, { File } from "node-telegram-bot-api";
-import { Channel } from "src/channel";
-import { FileType, Message } from "src/message";
-import { Platform } from "src/platform";
-import { Presence } from "src/presence";
-import { Reaction } from "src/reaction";
-import { User } from "src/user";
+// https://github.com/yagop/node-telegram-bot-api/issues/319
+process.env["NTBA_FIX_319"] = "1";
+
+import TelegramBot from "node-telegram-bot-api";
+import { Channel } from "../channel";
+import { FileType, Message } from "../message";
+import { Platform } from "../platform";
+import { Presence } from "../presence";
+import { Reaction } from "../reaction";
+import { User } from "../user";
 
 export class Telegram extends Platform {
   deleteTraces = false;

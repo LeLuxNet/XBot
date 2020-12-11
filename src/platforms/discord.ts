@@ -59,7 +59,7 @@ export class Discord extends Platform {
 
       this._client.on("ready", () => {
         this.log(`Started as "${this._client!.user!.tag}"`);
-        resolve();
+        resolve(null);
       });
 
       this._client.login(this._token);
@@ -88,7 +88,7 @@ export class Discord extends Platform {
     channel: Channel
   ): Promise<Message> {
     var msg = await channel._internal.send({
-      file: [{ attachment: fileName, name }],
+      files: [fileName],
     });
     return new Message(this, msg, msg.id, msg.content, channel, await this.me);
   }

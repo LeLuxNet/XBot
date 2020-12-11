@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Message = void 0;
+exports.FileType = exports.Message = void 0;
 const internal_1 = require("./internal");
 class Message extends internal_1.Internal {
-    constructor(platform, internal, id, content, channel) {
+    constructor(platform, internal, id, content, channel, author) {
         super(platform, internal);
         this.reactions = [];
         this.reactionButtons = true;
@@ -11,6 +11,7 @@ class Message extends internal_1.Internal {
         this.id = id;
         this.content = content;
         this.channel = channel;
+        this.author = author;
     }
     async react(emoji) {
         var reaction = await this.platform.addReaction(emoji, this);
@@ -33,3 +34,10 @@ class Message extends internal_1.Internal {
     }
 }
 exports.Message = Message;
+var FileType;
+(function (FileType) {
+    FileType[FileType["IMAGE"] = 0] = "IMAGE";
+    FileType[FileType["AUDIO"] = 1] = "AUDIO";
+    FileType[FileType["VIDEO"] = 2] = "VIDEO";
+    FileType[FileType["FILE"] = 3] = "FILE";
+})(FileType = exports.FileType || (exports.FileType = {}));

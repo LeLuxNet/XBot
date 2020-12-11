@@ -1,6 +1,6 @@
 import { Platform } from "../platform";
 import sdk from "matrix-js-sdk";
-import { Message } from "../message";
+import { FileType, Message } from "../message";
 import { Channel } from "../channel";
 import { Reaction } from "../reaction";
 import { User } from "../user";
@@ -12,7 +12,9 @@ export declare class Matrix extends Platform {
     constructor(userId: string, accessToken: string, server: string);
     start(): Promise<void>;
     stop(): Promise<void>;
-    sendMessage(text: string, room: Channel): Promise<Message>;
+    get me(): Promise<User>;
+    sendText(text: string, room: Channel): Promise<Message>;
+    sendFile(name: string, fileName: string, type: FileType, room: Channel): Promise<Message>;
     deleteMessage(message: Message): Promise<void>;
     editMessage(message: Message, text: string): Promise<void>;
     addReaction(emoji: string, message: Message): Promise<Reaction>;

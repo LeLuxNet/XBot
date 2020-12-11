@@ -1,17 +1,18 @@
 {
   "name": "@leluxnet/xbot",
-  "version": "0.2.0",
-  "description": "",
+  "version": "0.4.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "example": "ts-node examples/karlmarx.ts"
+    "pub": "tsc && npm publish"
   },
   "dependencies": {
     "discord.js": "^12.5.1",
     "matrix-js-sdk": "^9.3.0",
-    "node-telegram-bot-api": "^0.50.0"
+    "node-telegram-bot-api": "^0.50.0",
+    "youtube-search": "^1.1.4",
+    "ytdl-core": "^4.1.4"
   },
   "devDependencies": {
     "@types/matrix-js-sdk": "^5.1.3",

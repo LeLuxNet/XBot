@@ -10,6 +10,7 @@ const message_1 = require("../message");
 const channel_1 = require("../channel");
 const reaction_1 = require("../reaction");
 const user_1 = require("../user");
+const fs_1 = require("fs");
 class Matrix extends platform_1.Platform {
     constructor(userId, accessToken, server) {
         super("Matrix");
@@ -39,11 +40,13 @@ class Matrix extends platform_1.Platform {
                 if (event.getContent()["m.new_content"]) {
                     return;
                 }
-                this.emit("message", new message_1.Message(this, event.event_id, event.event_id, event.getContent().body, new channel_1.Channel(this, room.roomId, room.name, room.currentState.getJoinedMemberCount() === 2)));
+                const channel = new channel_1.Channel(this, room.roomId, room.name, room.currentState.getJoinedMemberCount() === 2);
+                const user = new user_1.User(this, event.userId, this._client.getUser(event.userId).displayName, false);
+                this.emit("message", new message_1.Message(this, event.event_id, event.event_id, event.getContent().body, channel, user));
             }
             else if (event.getType() === "m.reaction") {
                 const data = event.getContent()["m.relates_to"];
-                this._reactionRecieved(data.event_id, data.key, new user_1.User(this, "", ""));
+                this._reactionRecieved(data.event_id, data.key, new user_1.User(this, "", "", false));
             }
         });
     }
@@ -56,9 +59,28 @@ class Matrix extends platform_1.Platform {
         await this._client.stopClient();
         this.log("Stopped");
     }
-    async sendMessage(text, room) {
+    get me() {
+        const self = this._client.getUserId();
+        const user = new user_1.User(this, self, this._client.getUser(self).displayName, false);
+        return Promise.resolve(user);
+    }
+    async sendText(text, room) {
         // @ts-ignore
-        var event = await this._client.sendTextMessage(room._internal, text);
+        const event = await this._client.sendTextMessage(room._internal, text);
+        // @ts-ignore
+        return new message_1.Message(this, event.event_id, event.event_id, text, room);
+    }
+    async sendFile(name, fileName, type, room) {
+        const readStream = fs_1.createReadStream(fileName);
+        // @ts-ignore
+        const url = this._client.uploadContent(readStream, {});
+        const content = {
+            msgtype: ["m.image", "m.audio", "m.video", "m.file"][type],
+            body: name,
+            url: url,
+        };
+        // @ts-ignore
+        const event = await this._client.sendMessage(room._internal, content);
         // @ts-ignore
         return new message_1.Message(this, event.event_id, event.event_id, text, room);
     }

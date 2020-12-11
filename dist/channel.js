@@ -8,8 +8,11 @@ class Channel extends internal_1.Internal {
         this.name = name;
         this.dm = dm;
     }
-    async sendMessage(text) {
-        return await this.platform.sendMessage(text, this);
+    async sendText(text) {
+        return await this.platform.sendText(text, this);
+    }
+    async sendFile(name, fileName, type) {
+        return await this.platform.sendFile(name, fileName, type, this);
     }
     async typing(timeout = 2000) {
         await this.platform.typing(this, timeout);

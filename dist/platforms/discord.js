@@ -27,17 +27,19 @@ class Discord extends platform_1.Platform {
                 if (msg.author == this._client.user) {
                     return;
                 }
-                this.emit("message", new message_1.Message(this, msg, msg.id, msg.content, new channel_1.Channel(this, msg.channel, msg.channel instanceof discord_js_1.default.DMChannel
+                const channel = new channel_1.Channel(this, msg.channel, msg.channel instanceof discord_js_1.default.DMChannel
                     ? msg.channel.recipient.username
-                    : msg.channel.name, msg.channel instanceof discord_js_1.default.DMChannel)));
+                    : msg.channel.name, msg.channel instanceof discord_js_1.default.DMChannel);
+                const author = new user_1.User(this, msg.author, msg.author.username, msg.author.bot);
+                this.emit("message", new message_1.Message(this, msg, msg.id, msg.content, channel, author));
             });
             this._client.on("messageReactionAdd", (r, u) => {
-                const user = new user_1.User(this, u, u.username || "");
+                const user = new user_1.User(this, u, u.username || "", u.bot);
                 this._reactionRecieved(r.message.id, r.emoji.name, user);
             });
             this._client.on("ready", () => {
                 this.log(`Started as "${this._client.user.tag}"`);
-                resolve();
+                resolve(null);
             });
             this._client.login(this._token);
         });
@@ -46,9 +48,19 @@ class Discord extends platform_1.Platform {
         await this._client.destroy();
         this.log("Stopped");
     }
-    async sendMessage(text, channel) {
+    get me() {
+        const self = this._client.user;
+        return Promise.resolve(new user_1.User(this, self, self.username, self.bot));
+    }
+    async sendText(text, channel) {
         var msg = await channel._internal.send(text);
-        return new message_1.Message(this, msg, msg.id, msg.content, channel);
+        return new message_1.Message(this, msg, msg.id, msg.content, channel, await this.me);
+    }
+    async sendFile(name, fileName, type, channel) {
+        var msg = await channel._internal.send({
+            files: [fileName],
+        });
+        return new message_1.Message(this, msg, msg.id, msg.content, channel, await this.me);
     }
     async deleteMessage(message) {
         await message._internal.delete();
