@@ -1,4 +1,5 @@
 import DiscordJs from "discord.js";
+import { Readable } from "stream";
 import { Channel } from "../channel";
 import { FileType, Message } from "../message";
 import { Platform } from "../platform";
@@ -83,12 +84,12 @@ export class Discord extends Platform {
 
   async sendFile(
     name: string,
-    fileName: string,
+    stream: Readable,
     type: FileType,
     channel: Channel
   ): Promise<Message> {
     var msg = await channel._internal.send({
-      files: [fileName],
+      files: [stream],
     });
     return new Message(this, msg, msg.id, msg.content, channel, await this.me);
   }
@@ -142,8 +143,8 @@ export class Discord extends Platform {
     this.log("Set presence");
   }
 
-  async typing(channel: Channel, timeout: number) {
+  async typing(channel: Channel, duration: number) {
     channel._internal.startTyping();
-    setTimeout(() => channel._internal.stopTyping(), timeout);
+    setTimeout(() => channel._internal.stopTyping(), duration);
   }
 }

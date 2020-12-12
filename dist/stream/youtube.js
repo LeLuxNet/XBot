@@ -12,8 +12,11 @@ function getVideoId(url) {
     return matches === null ? null : matches[1];
 }
 exports.getVideoId = getVideoId;
-async function audioStream(id) {
-    const stream = await ytdl_core_1.default(`https://www.youtube.com/watch?v=${id}`);
+async function audioStream(id, options) {
+    const stream = await ytdl_core_1.default(`https://www.youtube.com/watch?v=${id}`, {
+        ...options,
+        filter: "audio",
+    });
     return new Promise((resolve, reject) => stream.once("info", (info) => resolve({
         info: {
             title: info.videoDetails.title,

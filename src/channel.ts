@@ -1,3 +1,4 @@
+import { Readable } from "stream";
 import { Internal } from "./internal";
 import { FileType } from "./message";
 import { Platform } from "./platform";
@@ -17,11 +18,11 @@ export class Channel extends Internal {
     return await this.platform.sendText(text, this);
   }
 
-  async sendFile(name: string, fileName: string, type: FileType) {
-    return await this.platform.sendFile(name, fileName, type, this);
+  async sendFile(name: string, stream: Readable, type: FileType) {
+    return await this.platform.sendFile(name, stream, type, this);
   }
 
-  async typing(timeout = 2000) {
-    await this.platform.typing(this, timeout);
+  async typing(duration = 2000) {
+    await this.platform.typing(this, duration);
   }
 }

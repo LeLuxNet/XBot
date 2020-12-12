@@ -2,7 +2,7 @@ import ytdl from "ytdl-core";
 import ytSearch from "youtube-search";
 import { Readable } from "stream";
 
-export interface YTVideo {
+interface YTVideo {
   title: string;
   id: string;
 
@@ -10,7 +10,7 @@ export interface YTVideo {
   channelId: string;
 }
 
-export interface YTStream {
+interface YTStream {
   info: YTVideo;
   stream: Readable;
 }
@@ -21,8 +21,14 @@ export function getVideoId(url: string) {
   return matches === null ? null : matches[1];
 }
 
-export async function audioStream(id: string): Promise<YTStream> {
-  const stream = await ytdl(`https://www.youtube.com/watch?v=${id}`);
+export async function audioStream(
+  id: string,
+  options?: StreamOptions
+): Promise<YTStream> {
+  const stream = await ytdl(`https://www.youtube.com/watch?v=${id}`, {
+    ...options,
+    filter: "audio",
+  });
 
   return new Promise((resolve, reject) =>
     stream.once("info", (info) =>

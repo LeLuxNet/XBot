@@ -1,4 +1,6 @@
+/// <reference types="node" />
 import DiscordJs from "discord.js";
+import { Readable } from "stream";
 import { Channel } from "../channel";
 import { FileType, Message } from "../message";
 import { Platform } from "../platform";
@@ -14,11 +16,11 @@ export declare class Discord extends Platform {
     stop(): Promise<void>;
     get me(): Promise<User>;
     sendText(text: string, channel: Channel): Promise<Message>;
-    sendFile(name: string, fileName: string, type: FileType, channel: Channel): Promise<Message>;
+    sendFile(name: string, stream: Readable, type: FileType, channel: Channel): Promise<Message>;
     deleteMessage(message: Message): Promise<void>;
     editMessage(message: Message, text: string): Promise<void>;
     addReaction(emoji: string, message: Message): Promise<Reaction>;
     removerUserReaction(reaction: Reaction, user: User): Promise<void>;
     setPresence(presence: Presence, status: string): Promise<void>;
-    typing(channel: Channel, timeout: number): Promise<void>;
+    typing(channel: Channel, duration: number): Promise<void>;
 }

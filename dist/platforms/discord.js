@@ -56,9 +56,9 @@ class Discord extends platform_1.Platform {
         var msg = await channel._internal.send(text);
         return new message_1.Message(this, msg, msg.id, msg.content, channel, await this.me);
     }
-    async sendFile(name, fileName, type, channel) {
+    async sendFile(name, stream, type, channel) {
         var msg = await channel._internal.send({
-            files: [fileName],
+            files: [stream],
         });
         return new message_1.Message(this, msg, msg.id, msg.content, channel, await this.me);
     }
@@ -107,9 +107,9 @@ class Discord extends platform_1.Platform {
         });
         this.log("Set presence");
     }
-    async typing(channel, timeout) {
+    async typing(channel, duration) {
         channel._internal.startTyping();
-        setTimeout(() => channel._internal.stopTyping(), timeout);
+        setTimeout(() => channel._internal.stopTyping(), duration);
     }
 }
 exports.Discord = Discord;

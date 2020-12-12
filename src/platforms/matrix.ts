@@ -6,6 +6,7 @@ import { Reaction } from "../reaction";
 import { User } from "../user";
 import { Presence } from "src/presence";
 import { createReadStream } from "fs";
+import { Readable } from "stream";
 
 export class Matrix extends Platform {
   deleteTraces = true;
@@ -113,14 +114,12 @@ export class Matrix extends Platform {
 
   async sendFile(
     name: string,
-    fileName: string,
+    stream: Readable,
     type: FileType,
     room: Channel
   ): Promise<Message> {
-    const readStream = createReadStream(fileName);
-
     // @ts-ignore
-    const url = this._client.uploadContent(readStream, {});
+    const url = this._client.uploadContent(stream, {});
 
     const content = {
       msgtype: ["m.image", "m.audio", "m.video", "m.file"][type],
@@ -191,7 +190,7 @@ export class Matrix extends Platform {
     this.log("Set presence");
   }
 
-  async typing(room: Channel, timeout: number) {
-    await this._client.sendTyping(room._internal, true, timeout);
+  async typing(room: Channel, duration: number) {
+    await this._client.sendTyping(room._internal, true, duration);
   }
 }

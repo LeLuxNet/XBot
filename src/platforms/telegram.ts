@@ -2,6 +2,7 @@
 process.env["NTBA_FIX_319"] = "1";
 
 import TelegramBot from "node-telegram-bot-api";
+import { Readable } from "stream";
 import { Channel } from "../channel";
 import { FileType, Message } from "../message";
 import { Platform } from "../platform";
@@ -98,22 +99,22 @@ export class Telegram extends Platform {
 
   async sendFile(
     name: string,
-    fileName: string,
+    stream: Readable,
     type: FileType,
     chat: Channel
   ): Promise<Message> {
     var msg: TelegramBot.Message;
     switch (type) {
       case FileType.IMAGE:
-        msg = await this._bot.sendPhoto(chat._internal, fileName);
+        msg = await this._bot.sendPhoto(chat._internal, stream);
       case FileType.AUDIO:
-        msg = await this._bot.sendAudio(chat._internal, fileName, {
+        msg = await this._bot.sendAudio(chat._internal, stream, {
           title: name,
         });
       case FileType.VIDEO:
-        msg = await this._bot.sendVideo(chat._internal, fileName);
+        msg = await this._bot.sendVideo(chat._internal, stream);
       case FileType.FILE:
-        msg = await this._bot.sendDocument(chat._internal, fileName);
+        msg = await this._bot.sendDocument(chat._internal, stream);
     }
 
     return new Message(
@@ -163,7 +164,7 @@ export class Telegram extends Platform {
     throw "Not implemented";
   }
 
-  async typing(channel: Channel, timeout: number) {
+  async typing(channel: Channel, duration: number) {
     this._bot.sendChatAction(channel._internal, "typing");
   }
 

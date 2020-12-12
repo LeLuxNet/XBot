@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { EventEmitter } from "events";
+import { Readable } from "stream";
 import { Channel } from "./channel";
 import { FileType, Message } from "./message";
 import { Presence } from "./presence";
@@ -15,12 +16,12 @@ export declare abstract class Platform extends EventEmitter {
     abstract stop(): Promise<void>;
     abstract get me(): Promise<User>;
     abstract sendText(text: string, channel: Channel): Promise<Message>;
-    abstract sendFile(name: string, fileName: string, type: FileType, channel: Channel): Promise<Message>;
+    abstract sendFile(name: string, stream: Readable, type: FileType, channel: Channel): Promise<Message>;
     abstract deleteMessage(message: Message): Promise<void>;
     abstract editMessage(message: Message, text: string): Promise<void>;
     abstract addReaction(emoji: string, message: Message): Promise<Reaction>;
     abstract removerUserReaction(reaction: Reaction, user: User): Promise<void>;
     abstract setPresence(presence: Presence, status: string): Promise<void>;
-    abstract typing(channel: Channel, timeout: number): Promise<void>;
+    abstract typing(channel: Channel, duration: number): Promise<void>;
     _reactionRecieved(messageId: string, emoji: string, user: User): Promise<void>;
 }

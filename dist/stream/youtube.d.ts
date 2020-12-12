@@ -1,15 +1,16 @@
 /// <reference types="node" />
 import { Readable } from "stream";
-export interface YTVideo {
+interface YTVideo {
     title: string;
     id: string;
     channelName: string;
     channelId: string;
 }
-export interface YTStream {
+interface YTStream {
     info: YTVideo;
     stream: Readable;
 }
 export declare function getVideoId(url: string): string | null;
-export declare function audioStream(id: string): Promise<YTStream>;
+export declare function audioStream(id: string, options: StreamOptions): Promise<YTStream>;
 export declare function search(text: string, apiKey: string): Promise<YTVideo | undefined>;
+export {};

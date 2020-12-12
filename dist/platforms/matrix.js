@@ -10,7 +10,6 @@ const message_1 = require("../message");
 const channel_1 = require("../channel");
 const reaction_1 = require("../reaction");
 const user_1 = require("../user");
-const fs_1 = require("fs");
 class Matrix extends platform_1.Platform {
     constructor(userId, accessToken, server) {
         super("Matrix");
@@ -70,10 +69,9 @@ class Matrix extends platform_1.Platform {
         // @ts-ignore
         return new message_1.Message(this, event.event_id, event.event_id, text, room);
     }
-    async sendFile(name, fileName, type, room) {
-        const readStream = fs_1.createReadStream(fileName);
+    async sendFile(name, stream, type, room) {
         // @ts-ignore
-        const url = this._client.uploadContent(readStream, {});
+        const url = this._client.uploadContent(stream, {});
         const content = {
             msgtype: ["m.image", "m.audio", "m.video", "m.file"][type],
             body: name,
@@ -126,8 +124,8 @@ class Matrix extends platform_1.Platform {
         });
         this.log("Set presence");
     }
-    async typing(room, timeout) {
-        await this._client.sendTyping(room._internal, true, timeout);
+    async typing(room, duration) {
+        await this._client.sendTyping(room._internal, true, duration);
     }
 }
 exports.Matrix = Matrix;

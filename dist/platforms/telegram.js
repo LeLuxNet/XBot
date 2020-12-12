@@ -50,19 +50,19 @@ class Telegram extends platform_1.Platform {
         const msg = await this._bot.sendMessage(chat._internal, text);
         return new message_1.Message(this, msg.message_id, uniqueIdByIds(msg.message_id, chat._internal), msg.text, chat, await this.me);
     }
-    async sendFile(name, fileName, type, chat) {
+    async sendFile(name, stream, type, chat) {
         var msg;
         switch (type) {
             case message_1.FileType.IMAGE:
-                msg = await this._bot.sendPhoto(chat._internal, fileName);
+                msg = await this._bot.sendPhoto(chat._internal, stream);
             case message_1.FileType.AUDIO:
-                msg = await this._bot.sendAudio(chat._internal, fileName, {
+                msg = await this._bot.sendAudio(chat._internal, stream, {
                     title: name,
                 });
             case message_1.FileType.VIDEO:
-                msg = await this._bot.sendVideo(chat._internal, fileName);
+                msg = await this._bot.sendVideo(chat._internal, stream);
             case message_1.FileType.FILE:
-                msg = await this._bot.sendDocument(chat._internal, fileName);
+                msg = await this._bot.sendDocument(chat._internal, stream);
         }
         return new message_1.Message(this, msg.message_id, uniqueIdByIds(msg.message_id, chat._internal), msg.text, chat, await this.me);
     }
@@ -94,7 +94,7 @@ class Telegram extends platform_1.Platform {
     async setPresence(presence, status) {
         throw "Not implemented";
     }
-    async typing(channel, timeout) {
+    async typing(channel, duration) {
         this._bot.sendChatAction(channel._internal, "typing");
     }
     hasDeleteTraces() {

@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import { Readable } from "stream";
 import { Channel } from "./channel";
 import { FileType, Message } from "./message";
 import { Presence } from "./presence";
@@ -29,7 +30,7 @@ export abstract class Platform extends EventEmitter {
 
   abstract sendFile(
     name: string,
-    fileName: string,
+    stream: Readable,
     type: FileType,
     channel: Channel
   ): Promise<Message>;
@@ -44,7 +45,7 @@ export abstract class Platform extends EventEmitter {
 
   abstract setPresence(presence: Presence, status: string): Promise<void>;
 
-  abstract typing(channel: Channel, timeout: number): Promise<void>;
+  abstract typing(channel: Channel, duration: number): Promise<void>;
 
   async _reactionRecieved(messageId: string, emoji: string, user: User) {
     const msg = this._reactionMessages.get(messageId);
