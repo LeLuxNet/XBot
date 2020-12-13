@@ -16,6 +16,7 @@ class Telegram extends platform_1.Platform {
     constructor(token) {
         super("Telegram");
         this.deleteTraces = false;
+        this.uploadLimit = 1024 * 1024 * 50; // 50 MB
         this._bot = new node_telegram_bot_api_1.default(token);
         this._bot.on("message", (msg) => {
             if (msg.text === undefined) {
@@ -50,7 +51,7 @@ class Telegram extends platform_1.Platform {
         const msg = await this._bot.sendMessage(chat._internal, text);
         return new message_1.Message(this, msg.message_id, uniqueIdByIds(msg.message_id, chat._internal), msg.text, chat, await this.me);
     }
-    async sendFile(name, stream, type, chat) {
+    async sendFile(name, fileName, stream, type, chat) {
         var msg;
         switch (type) {
             case message_1.FileType.IMAGE:
@@ -64,7 +65,7 @@ class Telegram extends platform_1.Platform {
             case message_1.FileType.FILE:
                 msg = await this._bot.sendDocument(chat._internal, stream);
         }
-        return new message_1.Message(this, msg.message_id, uniqueIdByIds(msg.message_id, chat._internal), msg.text, chat, await this.me);
+        return new message_1.Message(this, msg.message_id, uniqueIdByIds(msg.message_id, chat._internal), "", chat, await this.me);
     }
     async deleteMessage(message) {
         await this._bot.deleteMessage(message.channel._internal, message._internal);

@@ -14,6 +14,9 @@ class Matrix extends platform_1.Platform {
     constructor(userId, accessToken, server) {
         super("Matrix");
         this.deleteTraces = true;
+        // 10 MB (default; varies from homeserver to homeserver)
+        // The actual value is set after the start
+        this.uploadLimit = 1024 * 1024 * 10;
         this.userId = userId.toLowerCase();
         this._client = matrix_js_sdk_1.default.createClient({
             baseUrl: server,
@@ -36,23 +39,35 @@ class Matrix extends platform_1.Platform {
             console.log(event);
             if (event.getType() === "m.room.message") {
                 // Ignore edits
+                // @ts-ignore
                 if (event.getContent()["m.new_content"]) {
                     return;
                 }
                 const channel = new channel_1.Channel(this, room.roomId, room.name, room.currentState.getJoinedMemberCount() === 2);
-                const user = new user_1.User(this, event.userId, this._client.getUser(event.userId).displayName, false);
-                this.emit("message", new message_1.Message(this, event.event_id, event.event_id, event.getContent().body, channel, user));
+                const user = new user_1.User(this, event.sender.userId, event.sender.name, false);
+                this.emit("message", new message_1.Message(this, 
+                // @ts-ignore
+                event.event_id, 
+                // @ts-ignore
+                event.event_id, event.getContent().body, channel, user));
+                // @ts-ignore
             }
             else if (event.getType() === "m.reaction") {
+                // @ts-ignore
                 const data = event.getContent()["m.relates_to"];
-                this._reactionRecieved(data.event_id, data.key, new user_1.User(this, "", "", false));
+                this._reactionRecieved(data.event_id, data.key, new user_1.User(this, event.sender.userId, event.sender.name, false));
             }
         });
     }
     async start() {
-        await this._client
-            .startClient({ initialSyncLimit: 0 })
-            .then(() => this.log("Started"));
+        await this._client.startClient({ initialSyncLimit: 0 });
+        this._client.getMediaConfig().then((val) => {
+            const uploadLimit = val["m.upload.size"];
+            if (uploadLimit !== undefined) {
+                this.uploadLimit = uploadLimit;
+            }
+        });
+        this.log("Started");
     }
     async stop() {
         await this._client.stopClient();
@@ -66,21 +81,27 @@ class Matrix extends platform_1.Platform {
     async sendText(text, room) {
         // @ts-ignore
         const event = await this._client.sendTextMessage(room._internal, text);
+        return new message_1.Message(this, 
         // @ts-ignore
-        return new message_1.Message(this, event.event_id, event.event_id, text, room);
+        event.event_id, 
+        // @ts-ignore
+        event.event_id, text, room, await this.me);
     }
-    async sendFile(name, stream, type, room) {
+    async sendFile(name, fileName, stream, type, room) {
         // @ts-ignore
-        const url = this._client.uploadContent(stream, {});
+        const upload = JSON.parse(await this._client.uploadContent(stream, {}));
         const content = {
             msgtype: ["m.image", "m.audio", "m.video", "m.file"][type],
             body: name,
-            url: url,
+            url: upload.content_uri,
         };
         // @ts-ignore
         const event = await this._client.sendMessage(room._internal, content);
+        return new message_1.Message(this, 
         // @ts-ignore
-        return new message_1.Message(this, event.event_id, event.event_id, text, room);
+        event.event_id, 
+        // @ts-ignore
+        event.event_id, "", room, await this.me);
     }
     async deleteMessage(message) {
         // @ts-ignore

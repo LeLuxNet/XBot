@@ -1,10 +1,26 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Discord = void 0;
-const discord_js_1 = __importDefault(require("discord.js"));
+const discord_js_1 = __importStar(require("discord.js"));
 const channel_1 = require("../channel");
 const message_1 = require("../message");
 const platform_1 = require("../platform");
@@ -18,6 +34,7 @@ class Discord extends platform_1.Platform {
     constructor(token) {
         super("Discord");
         this.deleteTraces = false;
+        this.uploadLimit = 1024 * 1024 * 8; // 8 MB
         this._token = token;
     }
     async start() {
@@ -56,11 +73,21 @@ class Discord extends platform_1.Platform {
         var msg = await channel._internal.send(text);
         return new message_1.Message(this, msg, msg.id, msg.content, channel, await this.me);
     }
-    async sendFile(name, stream, type, channel) {
-        var msg = await channel._internal.send({
-            files: [stream],
-        });
-        return new message_1.Message(this, msg, msg.id, msg.content, channel, await this.me);
+    async sendFile(name, fileName, stream, type, channel) {
+        try {
+            var msg = await channel._internal.send({
+                files: [{ attachment: stream, name: fileName }],
+            });
+        }
+        catch (e) {
+            if (e instanceof discord_js_1.DiscordAPIError) {
+                console.log(e);
+            }
+            else {
+                throw e;
+            }
+        }
+        return new message_1.Message(this, msg, msg.id, "", channel, await this.me);
     }
     async deleteMessage(message) {
         await message._internal.delete();

@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.twitch = exports.youtube = exports.stopOnSignal = exports.envPlatforms = exports.User = exports.Reaction = exports.Presence = exports.Platform = exports.FileType = exports.Message = exports.Channel = exports.Telegram = exports.Discord = exports.Matrix = void 0;
+exports.twitch = exports.youtube = exports.stopOnSignal = exports.envPlatforms = exports.MsgError = exports.ErrorType = exports.User = exports.Reaction = exports.Presence = exports.Platform = exports.FileType = exports.Message = exports.Channel = exports.Telegram = exports.Discord = exports.Matrix = void 0;
 var matrix_1 = require("./platforms/matrix");
 Object.defineProperty(exports, "Matrix", { enumerable: true, get: function () { return matrix_1.Matrix; } });
 var discord_1 = require("./platforms/discord");
@@ -39,6 +39,9 @@ var reaction_1 = require("./reaction");
 Object.defineProperty(exports, "Reaction", { enumerable: true, get: function () { return reaction_1.Reaction; } });
 var user_1 = require("./user");
 Object.defineProperty(exports, "User", { enumerable: true, get: function () { return user_1.User; } });
+var error_1 = require("./error");
+Object.defineProperty(exports, "ErrorType", { enumerable: true, get: function () { return error_1.ErrorType; } });
+Object.defineProperty(exports, "MsgError", { enumerable: true, get: function () { return error_1.MsgError; } });
 var general_1 = require("./general");
 Object.defineProperty(exports, "envPlatforms", { enumerable: true, get: function () { return general_1.envPlatforms; } });
 Object.defineProperty(exports, "stopOnSignal", { enumerable: true, get: function () { return general_1.stopOnSignal; } });

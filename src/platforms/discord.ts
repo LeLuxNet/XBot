@@ -1,4 +1,4 @@
-import DiscordJs from "discord.js";
+import DiscordJs, { DiscordAPIError } from "discord.js";
 import { Readable } from "stream";
 import { Channel } from "../channel";
 import { FileType, Message } from "../message";
@@ -13,9 +13,11 @@ const STREAMING = "Streaming ";
 const WATCHING = "Watching ";
 
 export class Discord extends Platform {
-  deleteTraces = false;
   _token: string;
   _client?: DiscordJs.Client;
+
+  deleteTraces = false;
+  uploadLimit = 1024 * 1024 * 8; // 8 MB
 
   constructor(token: string) {
     super("Discord");
@@ -84,14 +86,24 @@ export class Discord extends Platform {
 
   async sendFile(
     name: string,
+    fileName: string,
     stream: Readable,
     type: FileType,
     channel: Channel
   ): Promise<Message> {
-    var msg = await channel._internal.send({
-      files: [stream],
-    });
-    return new Message(this, msg, msg.id, msg.content, channel, await this.me);
+    try {
+      var msg = await channel._internal.send({
+        files: [{ attachment: stream, name: fileName }],
+      });
+    } catch (e) {
+      if (e instanceof DiscordAPIError) {
+        console.log(e);
+      } else {
+        throw e;
+      }
+    }
+
+    return new Message(this, msg, msg.id, "", channel, await this.me);
   }
 
   async deleteMessage(message: Message) {

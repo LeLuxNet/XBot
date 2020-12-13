@@ -9,7 +9,9 @@ import { User } from "./user";
 export abstract class Platform extends EventEmitter {
   name: string;
   _reactionMessages = new Map<string, Message>();
+
   abstract deleteTraces: boolean;
+  abstract uploadLimit: number;
 
   constructor(name: string) {
     super();
@@ -30,6 +32,7 @@ export abstract class Platform extends EventEmitter {
 
   abstract sendFile(
     name: string,
+    fileName: string,
     stream: Readable,
     type: FileType,
     channel: Channel

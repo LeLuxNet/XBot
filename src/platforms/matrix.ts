@@ -1,17 +1,21 @@
 import { Platform } from "../platform";
-import sdk from "matrix-js-sdk";
+import sdk, { MatrixEvent, Room, RoomMember } from "matrix-js-sdk";
 import { FileType, Message } from "../message";
 import { Channel } from "../channel";
 import { Reaction } from "../reaction";
 import { User } from "../user";
 import { Presence } from "src/presence";
-import { createReadStream } from "fs";
 import { Readable } from "stream";
 
 export class Matrix extends Platform {
-  deleteTraces = true;
   userId: string;
   _client: sdk.MatrixClient;
+
+  deleteTraces = true;
+
+  // 10 MB (default; varies from homeserver to homeserver)
+  // The actual value is set after the start
+  uploadLimit = 1024 * 1024 * 10;
 
   constructor(userId: string, accessToken: string, server: string) {
     super("Matrix");
@@ -24,69 +28,87 @@ export class Matrix extends Platform {
     });
 
     // Auto join
-    this._client.on("RoomMember.membership", (event, member) => {
-      if (member.membership === "invite" && member.userId === this.userId) {
-        this._client.joinRoom(member.roomId);
+    this._client.on(
+      "RoomMember.membership",
+      (event: MatrixEvent, member: RoomMember) => {
+        if (member.membership === "invite" && member.userId === this.userId) {
+          this._client.joinRoom(member.roomId);
+        }
       }
-    });
+    );
 
-    this._client.on("Room.timeline", (event, room, toStartOfTimeline) => {
-      if (toStartOfTimeline) {
-        return;
-      }
-
-      if (event.sender.userId === this.userId) {
-        return;
-      }
-
-      console.log(event);
-
-      if (event.getType() === "m.room.message") {
-        // Ignore edits
-        if (event.getContent()["m.new_content"]) {
+    this._client.on(
+      "Room.timeline",
+      (event: MatrixEvent, room: Room, toStartOfTimeline: boolean) => {
+        if (toStartOfTimeline) {
           return;
         }
 
-        const channel = new Channel(
-          this,
-          room.roomId,
-          room.name,
-          room.currentState.getJoinedMemberCount() === 2
-        );
+        if (event.sender.userId === this.userId) {
+          return;
+        }
 
-        const user = new User(
-          this,
-          event.userId,
-          this._client.getUser(event.userId)!.displayName,
-          false
-        );
+        console.log(event);
 
-        this.emit(
-          "message",
-          new Message(
+        if (event.getType() === "m.room.message") {
+          // Ignore edits
+          // @ts-ignore
+          if (event.getContent()["m.new_content"]) {
+            return;
+          }
+
+          const channel = new Channel(
             this,
-            event.event_id,
-            event.event_id,
-            event.getContent().body,
-            channel,
-            user
-          )
-        );
-      } else if (event.getType() === "m.reaction") {
-        const data = event.getContent()["m.relates_to"];
-        this._reactionRecieved(
-          data.event_id,
-          data.key,
-          new User(this, "", "", false)
-        );
+            room.roomId,
+            room.name,
+            room.currentState.getJoinedMemberCount() === 2
+          );
+
+          const user = new User(
+            this,
+            event.sender.userId,
+            event.sender.name,
+            false
+          );
+
+          this.emit(
+            "message",
+            new Message(
+              this,
+              // @ts-ignore
+              event.event_id,
+              // @ts-ignore
+              event.event_id,
+              event.getContent().body,
+              channel,
+              user
+            )
+          );
+          // @ts-ignore
+        } else if (event.getType() === "m.reaction") {
+          // @ts-ignore
+          const data = event.getContent()["m.relates_to"];
+          this._reactionRecieved(
+            data.event_id,
+            data.key,
+            new User(this, event.sender.userId, event.sender.name, false)
+          );
+        }
       }
-    });
+    );
   }
 
   async start() {
-    await this._client
-      .startClient({ initialSyncLimit: 0 })
-      .then(() => this.log("Started"));
+    await this._client.startClient({ initialSyncLimit: 0 });
+
+    this._client.getMediaConfig().then((val: { "m.upload.size"?: number }) => {
+      const uploadLimit = val["m.upload.size"];
+      if (uploadLimit !== undefined) {
+        this.uploadLimit = uploadLimit;
+      }
+    });
+
+    this.log("Started");
   }
 
   async stop() {
@@ -108,29 +130,47 @@ export class Matrix extends Platform {
   async sendText(text: string, room: Channel): Promise<Message> {
     // @ts-ignore
     const event = await this._client.sendTextMessage(room._internal, text);
-    // @ts-ignore
-    return new Message(this, event.event_id, event.event_id, text, room);
+    return new Message(
+      this,
+      // @ts-ignore
+      event.event_id,
+      // @ts-ignore
+      event.event_id,
+      text,
+      room,
+      await this.me
+    );
   }
 
   async sendFile(
     name: string,
+    fileName: string,
     stream: Readable,
     type: FileType,
     room: Channel
   ): Promise<Message> {
     // @ts-ignore
-    const url = this._client.uploadContent(stream, {});
+    const upload = JSON.parse(await this._client.uploadContent(stream, {}));
 
     const content = {
       msgtype: ["m.image", "m.audio", "m.video", "m.file"][type],
       body: name,
-      url: url,
+      url: upload.content_uri,
     };
 
     // @ts-ignore
     const event = await this._client.sendMessage(room._internal, content);
-    // @ts-ignore
-    return new Message(this, event.event_id, event.event_id, text, room);
+
+    return new Message(
+      this,
+      // @ts-ignore
+      event.event_id,
+      // @ts-ignore
+      event.event_id,
+      "",
+      room,
+      await this.me
+    );
   }
 
   async deleteMessage(message: Message) {

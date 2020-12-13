@@ -11,8 +11,10 @@ import { Reaction } from "../reaction";
 import { User } from "../user";
 
 export class Telegram extends Platform {
-  deleteTraces = false;
   _bot: TelegramBot;
+
+  deleteTraces = false;
+  uploadLimit = 1024 * 1024 * 50; // 50 MB
 
   constructor(token: string) {
     super("Telegram");
@@ -99,6 +101,7 @@ export class Telegram extends Platform {
 
   async sendFile(
     name: string,
+    fileName: string,
     stream: Readable,
     type: FileType,
     chat: Channel
@@ -121,7 +124,7 @@ export class Telegram extends Platform {
       this,
       msg.message_id,
       uniqueIdByIds(msg.message_id, chat._internal),
-      msg.text!,
+      "",
       chat,
       await this.me
     );
