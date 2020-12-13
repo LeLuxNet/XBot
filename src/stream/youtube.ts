@@ -44,6 +44,8 @@ export async function stream(
     (f) => f.hasAudio && (!video || f.hasVideo)
   );
 
+  if (formats.length === 0) throw new MsgError(ErrorType.ERROR_GETTING_STREAM);
+
   if (options && options.sizeLimit) {
     const size = options.sizeLimit;
 
@@ -51,9 +53,8 @@ export async function stream(
       const res = await axios.head(f.url);
       return res.headers["content-length"] <= size;
     });
+    if (formats.length === 0) throw new MsgError(ErrorType.UPLOAD_LIMIT);
   }
-
-  if (formats.length === 0) throw new MsgError(ErrorType.UPLOAD_LIMIT);
 
   const stream = ytdl.downloadFromInfo(info, {
     ...options,
@@ -71,12 +72,9 @@ export async function stream(
   };
 }
 
-export async function search(
-  text: string,
-  apiKey: string
-): Promise<YTVideo | undefined> {
+export async function search(text: string, apiKey: string): Promise<YTVideo> {
   const { results } = await ytSearch(text, { key: apiKey });
-  if (results.length === 0) return;
+  if (results.length === 0) throw new MsgError(ErrorType.NOT_FOUND);
 
   const res = results[0];
   return {

@@ -7,11 +7,11 @@ export interface StreamOptions {
   sizeLimit?: number;
 }
 
-const defaultWatermark = 1024 * 512; // 512 kB
+const highWaterMarkDefault = 1024 * 512; // 512 kB
 
 export function bufferStream(
   stream: Readable,
-  highWaterMark: number = defaultWatermark
+  highWaterMark: number = highWaterMarkDefault
 ) {
   const resStream = new PassThrough({
     highWaterMark,

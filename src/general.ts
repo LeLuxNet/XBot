@@ -6,8 +6,8 @@ import { Telegram } from "./platforms/telegram";
 export function envPlatforms() {
   const {
     DISCORD_TOKEN,
-    MATRIX_USER,
-    MATRIX_TOKEN,
+    MATRIX_USERNAME,
+    MATRIX_ACCESS_TOKEN,
     MATRIX_SERVER,
     TELEGRAM_TOKEN,
   } = process.env;
@@ -19,11 +19,13 @@ export function envPlatforms() {
   }
 
   if (
-    MATRIX_USER !== undefined &&
-    MATRIX_TOKEN !== undefined &&
+    MATRIX_USERNAME !== undefined &&
+    MATRIX_ACCESS_TOKEN !== undefined &&
     MATRIX_SERVER !== undefined
   ) {
-    clients.push(new Matrix(MATRIX_USER, MATRIX_TOKEN, MATRIX_SERVER));
+    clients.push(
+      new Matrix(MATRIX_USERNAME, MATRIX_ACCESS_TOKEN, MATRIX_SERVER)
+    );
   }
 
   if (TELEGRAM_TOKEN !== undefined) {

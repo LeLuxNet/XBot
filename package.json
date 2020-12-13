@@ -1,6 +1,6 @@
 {
   "name": "@leluxnet/xbot",
-  "version": "0.6.1",
+  "version": "0.6.6",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -13,6 +13,7 @@
     "m3u8stream": "^0.8.3",
     "matrix-js-sdk": "^9.3.0",
     "node-telegram-bot-api": "^0.50.0",
+    "soundcloud-downloader": "^0.2.1",
     "twitch-get-stream": "^0.6.0",
     "youtube-search": "^1.1.4",
     "ytdl-core": "^4.1.4"

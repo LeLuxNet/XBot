@@ -17,3 +17,4 @@ export { envPlatforms, stopOnSignal } from "./general";
 
 export * as youtube from "./stream/youtube";
 export * as twitch from "./stream/twitch";
+export * as soundcloud from "./stream/soundcloud";
